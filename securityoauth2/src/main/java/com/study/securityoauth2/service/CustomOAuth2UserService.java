@@ -1,9 +1,12 @@
 package com.study.securityoauth2.service;
 
+import com.study.securityoauth2.domain.User;
 import com.study.securityoauth2.dto.response.CustomOAuth2User;
 import com.study.securityoauth2.dto.response.KakaoResponse;
 import com.study.securityoauth2.dto.response.OAuth2Response;
 import com.study.securityoauth2.dto.response.OAuth2UserDto;
+import com.study.securityoauth2.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -16,7 +19,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+
+    private final UserRepository userRepository;
 
     // OAuth2UserRequest 리소스 서버에서 제공되는 Client 정보
     @Override
@@ -51,14 +57,45 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // 리소스 서버에서 발급받은 정보로 사용자 아이디 값 생성
         String createdUserId = oAuth2Response.getProvider()+" "+oAuth2Response.getProviderId();
 
-        // OAuth2User 인자 객체 생성
-        OAuth2UserDto oAuth2UserDto = OAuth2UserDto.builder()
-                .role("ROLE_USER")
-                .name(oAuth2Response.getName())
-                .createdUserId(createdUserId)
-                .build();
+        // 생성된 값 이미 존재하는지 확인
+        User existData = userRepository.findByKakaoId(createdUserId);
 
-        // Authentication Provider 전달 객체 생성 후 반환
-        return new CustomOAuth2User(oAuth2UserDto);
+        // 존재하지 않는 경우
+        if(existData == null) {
+
+            // 유저 생성
+            User user = User.builder()
+                    .kakaoId(createdUserId)
+                    .name(oAuth2Response.getName())
+                    .email(oAuth2Response.getEmail())
+                    .role("ROLE_USER")
+                    .build();
+
+            userRepository.save(user);
+
+            // OAuth2User 인자 객체 생성
+            OAuth2UserDto oAuth2UserDto = OAuth2UserDto.builder()
+                    .role("ROLE_USER")
+                    .name(oAuth2Response.getName())
+                    .createdUserId(createdUserId)
+                    .build();
+
+            // Authentication Provider 전달 객체 생성 후 반환
+            return new CustomOAuth2User(oAuth2UserDto);
+        }
+        
+        // 이미 존재하는 경우
+        else {
+
+            // OAuth2User 인자 객체 생성
+            OAuth2UserDto oAuth2UserDto = OAuth2UserDto.builder()
+                    .role(existData.getRole())
+                    .name(oAuth2User.getName())
+                    .createdUserId(createdUserId)
+                    .build();
+
+            // Authentication Provider 전달 객체 생성 후 반환
+            return new CustomOAuth2User(oAuth2UserDto);
+        }
     }
 }
