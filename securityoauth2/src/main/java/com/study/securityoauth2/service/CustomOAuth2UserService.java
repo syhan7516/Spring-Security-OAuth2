@@ -1,7 +1,9 @@
 package com.study.securityoauth2.service;
 
+import com.study.securityoauth2.dto.response.CustomOAuth2User;
 import com.study.securityoauth2.dto.response.KakaoResponse;
 import com.study.securityoauth2.dto.response.OAuth2Response;
+import com.study.securityoauth2.dto.response.OAuth2UserDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -46,8 +48,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return null;
         }
 
-        // 로그인 완료 후 추가 작업
+        // 리소스 서버에서 발급받은 정보로 사용자 아이디 값 생성
+        String createdUserId = oAuth2Response.getProvider()+" "+oAuth2Response.getProviderId();
 
-        return oAuth2User;
+        // OAuth2User 인자 객체 생성
+        OAuth2UserDto oAuth2UserDto = OAuth2UserDto.builder()
+                .role("ROLE_USER")
+                .name(oAuth2Response.getName())
+                .createdUserId(createdUserId)
+                .build();
+
+        // Authentication Provider 전달 객체 생성 후 반환
+        return new CustomOAuth2User(oAuth2UserDto);
     }
 }
