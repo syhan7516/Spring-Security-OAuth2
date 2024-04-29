@@ -26,12 +26,12 @@ public class KakaoResponse implements OAuth2Response {
     // 소셜 로그인 이메일
     @Override
     public String getEmail() {
-        return attribute.get("email").toString();
+        return "이메일 없음";
     }
 
     // 이름
     @Override
     public String getName() {
-        return attribute.get("name").toString();
+        return "이름 없음";
     }
 }
