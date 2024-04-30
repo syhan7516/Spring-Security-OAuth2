@@ -1,5 +1,6 @@
 package com.study.securityoauth2.config;
 
+import com.study.securityoauth2.jwt.JwtFilter;
 import com.study.securityoauth2.jwt.JwtUtil;
 import com.study.securityoauth2.oauth2.CustomSuccessHandler;
 import com.study.securityoauth2.service.CustomOAuth2UserService;
@@ -10,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -40,6 +42,11 @@ public class SecurityConfig {
                 // HTTP Basic 인증 방식 비활성화
                 // -> JWT 방식, OAuth2 방식의 로그인을 수행하므로 비활성화
                 .httpBasic((auth) -> auth.disable());
+        
+        // jwt filter 등록
+        // -> UsernamePasswordAuthenticationFilter 이전에 JwtFilter 수행
+        http
+                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         // OAuth2 설정
         http
