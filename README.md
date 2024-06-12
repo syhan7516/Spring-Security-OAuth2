@@ -1,2 +1,2 @@
 # Spring-Security-OAuth2
-Repository for Spring security &amp; kakao OAuth2 &amp; jwt study
+🧪 스프링 시큐리티, 카카오 OAuth2, JWT 조합 공부를 위한 저장소
